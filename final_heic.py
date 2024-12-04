@@ -348,6 +348,8 @@ class PhotoDateModifier:
         # 清空列表
         for item in self.file_list.get_children():
             self.file_list.delete(item)
+        # 重置进度条
+        self.progress["value"] = 0
         
         photo_files = [f for f in os.listdir(self.folder_path) 
                       if f.lower().endswith(('.jpg', '.jpeg', '.png', '.heic'))]
@@ -464,6 +466,9 @@ class PhotoDateModifier:
     def scan_selected_files(self):
         for item in self.file_list.get_children():
             self.file_list.delete(item)
+            
+        # 重置进度条
+        self.progress["value"] = 0
         
         for filepath in self.selected_files:
             filename = os.path.basename(filepath)
@@ -480,7 +485,7 @@ class PhotoDateModifier:
                 date_str if date_str else "-",
                 status
             ))
-               
+
     def process_photos(self):
         if not self.selected_files:
             messagebox.showerror("错误", "请先选择文件或文件夹！")
