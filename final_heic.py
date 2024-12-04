@@ -54,7 +54,7 @@ class DateFormatConfig:
     def __init__(self, parent, callback):
         self.window = tk.Toplevel(parent)
         self.window.title("日期格式配置")
-        self.window.geometry("400x400")
+        self.window.geometry("500x600")
         self.callback = callback
         self.format_processor = DateFormatProcessor()
         
@@ -88,7 +88,7 @@ class DateFormatConfig:
             ).pack(padx=10, pady=2, anchor=tk.W)
         
         # 自定义格式框架
-        custom_frame = ttk.LabelFrame(self.window, text="自定义格式")
+        custom_frame = ttk.LabelFrame(self.window, text="自定义格式（回车生效）")
         custom_frame.pack(padx=10, pady=5, fill=tk.X)
         
         self.custom_format = ttk.Entry(custom_frame)
@@ -187,13 +187,13 @@ class DateFormatConfig:
 class PhotoDateModifier:
     def __init__(self, root):
         self.root = root
-        self.root.title("照片日期修改器")
-        self.root.geometry("800x600")
+        self.root.title("照片日期修改器 V1.6.6")
+        self.root.geometry("1200x600")
         self.create_menu()
 
         self.date_format = "YYYY-MM-DD"
         self.format_processor = DateFormatProcessor()
-        
+        self.selected_files = []
         self.load_config()
         self.create_widgets()
     
@@ -208,11 +208,11 @@ class PhotoDateModifier:
         # 创建一个新的对话框窗口
         about_dialog = tk.Toplevel(self.root)
         about_dialog.title("关于")
-        about_dialog.geometry("300x150")
+        about_dialog.geometry("500x250")
         about_dialog.resizable(False, False)
         
         # 添加标题和作者信息
-        tk.Label(about_dialog, text="照片日期修改器 V1.6", font=('Arial', 12, 'bold')).pack(pady=10)
+        tk.Label(about_dialog, text="照片日期修改器 V1.6.6", font=('Arial', 12, 'bold')).pack(pady=10)
         tk.Label(about_dialog, text="by 类六怪都").pack(pady=5)
         
         # 创建可点击的链接
@@ -234,13 +234,23 @@ class PhotoDateModifier:
         control_frame = ttk.Frame(self.root)
         control_frame.pack(side=tk.LEFT, padx=10, pady=10, fill=tk.Y)
         
-        # 选择文件按钮
-        self.select_btn = ttk.Button(
-            control_frame, 
-            text="选择照片文件夹", 
+        # 选择文件按钮区域
+        select_frame = ttk.Frame(control_frame)
+        select_frame.pack(pady=10)
+        
+        self.select_folder_btn = ttk.Button(
+            select_frame, 
+            text="选择文件夹", 
             command=self.select_folder
         )
-        self.select_btn.pack(pady=10)
+        self.select_folder_btn.pack(side=tk.LEFT, padx=5)
+        
+        self.select_files_btn = ttk.Button(
+            select_frame, 
+            text="选择文件", 
+            command=self.select_files
+        )
+        self.select_files_btn.pack(side=tk.LEFT, padx=5)
         
         # 显示选中路径
         self.path_label = ttk.Label(control_frame, text="未选择文件夹")
@@ -330,15 +340,19 @@ class PhotoDateModifier:
         folder_path = filedialog.askdirectory()
         if folder_path:
             self.folder_path = folder_path
+            self.selected_files = []  # 清空之前选择的文件
             self.path_label.config(text=folder_path)
             self.scan_folder()
     
     def scan_folder(self):
+        # 清空列表
         for item in self.file_list.get_children():
             self.file_list.delete(item)
         
         photo_files = [f for f in os.listdir(self.folder_path) 
                       if f.lower().endswith(('.jpg', '.jpeg', '.png', '.heic'))]
+        
+        self.selected_files = [os.path.join(self.folder_path, f) for f in photo_files]
         
         for filename in photo_files:
             full_path = os.path.join(self.folder_path, filename)
@@ -433,10 +447,43 @@ class PhotoDateModifier:
         except Exception as e:
             print(f"修改文件日期时出错: {str(e)}")
             return False
-    
+
+    def select_files(self):
+        files = filedialog.askopenfilenames(
+            filetypes=[
+                ('图片文件', '*.jpg;*.jpeg;*.png;*.heic'),
+                ('所有文件', '*.*')
+            ]
+        )
+        if files:
+            self.selected_files = list(files)
+            self.folder_path = os.path.dirname(self.selected_files[0])
+            self.path_label.config(text=f"已选择 {len(self.selected_files)} 个文件")
+            self.scan_selected_files()
+
+    def scan_selected_files(self):
+        for item in self.file_list.get_children():
+            self.file_list.delete(item)
+        
+        for filepath in self.selected_files:
+            filename = os.path.basename(filepath)
+            original_date = datetime.fromtimestamp(
+                os.path.getmtime(filepath)
+            ).strftime('%Y-%m-%d %H:%M')
+            
+            date_str = self.format_processor.extract_date_from_filename(filename, self.date_format)
+            status = "待处理" if date_str else "无法识别日期"
+            
+            self.file_list.insert("", tk.END, values=(
+                filename,
+                original_date,
+                date_str if date_str else "-",
+                status
+            ))
+               
     def process_photos(self):
-        if not hasattr(self, 'folder_path'):
-            messagebox.showerror("错误", "请先选择文件夹！")
+        if not self.selected_files:
+            messagebox.showerror("错误", "请先选择文件或文件夹！")
             return
 
         # 获取程序所在目录
