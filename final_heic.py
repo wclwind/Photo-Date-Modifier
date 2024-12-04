@@ -325,8 +325,14 @@ class PhotoDateModifier:
         self.date_format = new_format
         # 更新显示的当前格式
         self.current_format_label.config(text=f"当前格式: {self.date_format}")
-        if hasattr(self, 'folder_path'):
-            self.scan_folder()
+        
+        # 如果是通过选择文件方式导入的，调用 scan_selected_files
+        # 如果是通过选择文件夹导入的，调用 scan_folder
+        if len(self.selected_files) > 0:
+            if os.path.isfile(self.selected_files[0]):  # 判断是文件模式
+                self.scan_selected_files()
+            else:  # 文件夹模式
+                self.scan_folder()
     
     def load_config(self):
         try:
@@ -466,7 +472,7 @@ class PhotoDateModifier:
     def scan_selected_files(self):
         for item in self.file_list.get_children():
             self.file_list.delete(item)
-            
+
         # 重置进度条
         self.progress["value"] = 0
         
