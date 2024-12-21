@@ -1,8 +1,7 @@
 # 照片日期修改器
 一款根据照片文件名批量修改照片日期的软件，百分百由AI生成的代码，毫无人工参与的痕迹。
-![20241204-153641](https://github.com/user-attachments/assets/88569671-1d42-43b1-a0a0-a27fd1e6092a)
+
+针对没有写入exif日期文件的照片，在复制过程中可能会导致创建时间发生改变，因此通过读取文件名再写入创建和修改时间，保证相片在浏览时也能按照时间顺序排列。
 
 
-![image](https://github.com/user-attachments/assets/c86af7a7-64c7-4801-afed-e90a6c1d1fee)
-
-![46AFA321294C37EB61A241169BA290B1](https://github.com/user-attachments/assets/087ae53c-302c-423e-b988-6b00cd520f0d)
+![屏幕截图 2024-12-21 171613](https://github.com/user-attachments/assets/6bd3fa76-f60a-4a13-8573-28885227acc9)
